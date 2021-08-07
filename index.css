@@ -1,3 +1,19 @@
 body{
     background-color: skyblue;
+    padding: 0;
+    margin: 0;
+   
+}
+h2{
+    text-align: center;
+}
+a{
+    text-decoration: none;
+    color: brown;
+}
+button{
+    width: 150px;
+    height: 50px;
+    text-align: center;
+    margin-left: 10px;
 }

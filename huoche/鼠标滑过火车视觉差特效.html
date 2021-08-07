@@ -1,0 +1,97 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Document</title>
+    <style>
+        body {
+            padding: 0;
+            margin: 0;
+        }
+
+        body .circle {
+            position: relative;
+            left: 0;
+            right: 0;
+            margin: auto;
+            top: 100px;
+            width: 200px;
+            height: 200px;
+            transition: all .5s;
+            cursor: pointer;
+            background-color: skyblue;
+            border-radius: 50%;
+            overflow: hidden;
+        }
+
+        body .circle:hover {
+            transform: scale(1.2);
+        }
+
+        body .circle .pc1 img {
+            position: absolute;
+            left: 0px;
+        }
+
+        body .circle .pc2 img {
+            position: absolute;
+            left: -450px;
+        }
+
+        body .circle .pc3 img {
+            position: absolute;
+            left: 0px;
+        }
+
+        body .circle img {
+            transition: all 5s linear;
+        }
+    </style>
+</head>
+
+<body>
+    <!-- https://www.17sucai.com/pins/demo-show?id=15819 -->
+    <div class="circle">
+        <div class="pc1">
+            <img src="./image/pc1.png" />
+        </div>
+        <div class="pc2">
+            <img src="./image/pc2.png" />
+        </div>
+        <div class="pc3">
+            <img src="./image/pc3.png" />
+        </div>
+
+    </div>
+    <script>
+        var pc1 = document.querySelector(".pc1 img");
+        var pc2 = document.querySelector(".pc2 img");
+        var pc3 = document.querySelector(".pc3 img");
+        var box = document.querySelector(".circle");
+        var img = document.querySelector(".circle>img");
+
+
+        box.onmouseover = function () {
+            pc2.style.left = -150 + "px";
+            pc1.style.left = -300 + "px";
+            pc3.style.left = -300 + "px";
+            img.style.transition = "all 5s linear";
+        };
+        box.onmouseout = function () {
+
+            pc1.style.left = 0 + "px";
+            pc3.style.left = 0 + "px";
+            pc2.style.left = -450 + "px";
+            // img.style.transition="all 2s linear" ;
+            //  img.style.transitionDuration="all .5";
+            // img.style.transitionDuration = "left 1s";
+};
+
+    </script>
+
+</body>
+
+</html>
