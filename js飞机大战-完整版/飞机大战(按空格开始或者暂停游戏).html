@@ -1,0 +1,622 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta http-equiv="X-UA-Compatible" content="ie=edge">
+    <title>微信打飞机游戏</title>
+    <style>
+        *{
+            margin: 0;
+            padding: 0;
+        }
+        #game{
+            width: 320px;
+            height: 568px;
+            overflow: hidden;
+            margin:0 auto;
+        }
+        /* 开始游戏界面 */
+        #game #gameStart{
+            width: 100%;
+            height: 100%;
+            background: url(images/开始背景.png);
+            position: relative;
+            display: block;
+        }
+        #game #gameStart span{
+            height: 30px;
+            width: 150px;
+            position: absolute;
+            bottom: 38px;
+            left: 50%;
+            margin-left: -75px;
+            line-height: 30px;
+            border: 1px solid black;
+            border-radius: 30px;
+            background-color: #c4c9ca;
+            text-align: center;
+            cursor: pointer;
+        }
+
+        /* 进入游戏界面 */
+        #game #gameEnter{
+            width: 100%;
+            height: 100%;
+            background:url(images/background_1.png);
+            position: relative;
+            display: none;
+        }
+        #game #gameEnter #myPlane{
+            width: 66px;
+            height: 80px;
+            position: absolute;
+            bottom: 0;
+            left: 127px;
+        }
+        #game #gameEnter #bullets,#game #gameEnter #enemys{
+            width: 100%;
+            height: 100%;
+            position: absolute;
+        }
+        #game #gameEnter #bullets .bullet{
+            width: 6px;
+            height: 14px;
+            position: absolute;
+            /*left: 159px;
+            bottom: 90px;*/  
+        }
+        #game #gameEnter #enemys .enemy{
+            position: absolute;
+        }
+    </style>
+    <script type="text/javascript">
+        // 封装一个获取对象的方法
+        function $(selector){
+            return document.querySelector(selector);
+        }
+
+        window.onload = function(){
+            // 游戏主页面对象
+            var game = $("#game");
+            // 开始游戏对象
+            var gameStart = $("#gameStart");
+            // 开始游戏按钮对象
+            var gameStartBtn = $("#gameStart span");
+            // 进入游戏界面对象
+            var gameEnter = $("#gameEnter");
+            // 我的飞机所在层对象
+            var myPlane = $("#myPlane");
+            // 子弹所在层对象
+            var bullets = $("#bullets");
+            // 敌方飞机所在层对象
+            var enemys  = $("#enemys");
+            // 获取分数层对象
+            var scoreSpan = $("#scores p span");
+
+
+            // 获取样式使用最终值的函数
+            function getStyle(obj,attr){
+                var res = null;
+                if(obj.currentStyle){ // IE浏览器
+                    res = obj.currentStyle[attr];
+                }else{// 其他浏览器
+                    res = window.getComputedStyle(obj,null)[attr];
+                }
+                return parseFloat( res );
+            }
+
+            // 获取需要使用的元素样式
+            // 1. 获取游戏界面的宽度高度
+            var gameW = getStyle(game,"width");
+            var gameH = getStyle(game,"height");
+            
+
+            // 2. 获取游戏界面的左外边距以及上外边距
+            var gameML = getStyle(game,"marginLeft");
+            var gameMT = getStyle(game,"marginTop");
+
+
+            // 3. 获取己方飞机的宽度高度
+            var myPlaneW = getStyle(myPlane,"width");
+            var myPlaneH = getStyle(myPlane,"height");
+
+            // 声明需要使用到的全局变量
+            // gameStatus变量代表当前游戏状态 true代表开始游戏状态 false代表暂停游戏状态
+            var gameStatus = true;
+            // 创建子弹的定时器
+            var bulletTimer = null;
+            // 子弹的宽度高度
+            var bulletW = 6;
+            var bulletH = 14;
+            // 创建敌机的定时器
+            var EnemyTimer = null;
+            // 背景图运动的定时器
+            var bgTimer = null;
+            // 背景图y轴的值
+            var backgroundPY = 0;
+            // 得分
+            var scores = 0;
+
+
+            // 开始游戏功能
+            gameStartBtn.onclick = function(){
+                gameStart.style.display = "none";
+                gameEnter.style.display = "block";
+
+
+                // 飞机碰撞敌机以后重新开始以后,所以我们需要初始化得分为0,并且把分数层的内容改为0分
+                scores = 0;
+                scoreSpan.innerHTML = 0;
+
+                // 给当前的文档添加键盘事件
+                document.onkeyup = function(e){
+                    var e = e || window.event;
+                    if(e.keyCode === 32){// 按下空格键,开始移动飞机
+                        if( gameStatus ){
+
+                            // 开始游戏 可以移动飞机
+                            gameEnter.onmousemove = myPlaneMove;
+
+                            // 实现开始游戏之后,背景图的运动
+                            bgMove();
+
+                            // 实现射击
+                            shot();
+
+                            // 出现敌机
+                            appearEnemy();
+
+                            // 暂时游戏之后的重新开始游戏
+                            // 子弹的继续运动
+                            var allBullets = document.querySelectorAll(".bullet");// 获取所有子弹的集合
+                            if(allBullets.length != 0){
+                                reStart( allBullets , 1 );
+                            }
+
+                            // 敌机的继续运动
+                            var allEnemys = document.querySelectorAll(".enemy");// 获取所有敌机的集合
+                            if(allEnemys.length != 0){
+                                reStart( allEnemys , 2 );
+                            }
+                        }else{
+                            // 暂停游戏 不可以移动飞机
+                            gameEnter.onmousemove = null;
+                            // 清除创建子弹的定时器
+                            clearInterval(bulletTimer);
+                            bulletTimer = null;
+
+                            // 清除创建敌机的定时器
+                            clearInterval(EnemyTimer);
+                            EnemyTimer = null;
+
+                            // 清除每个子弹的运动定时器
+                            var allBullets = document.querySelectorAll(".bullet");// 获取所有子弹的集合
+                            clearObjsTimer( allBullets );
+
+                            // 清除每个敌机的运动定时器
+                            var allEnemys = document.querySelectorAll(".enemy");// 获取所有敌机的集合
+                            clearObjsTimer( allEnemys );
+
+                            // 清除背景图运动的定时器
+                            clearInterval(bgTimer);
+                            bgTimer = null;
+                        }
+                        // 改变游戏状态全局变量
+                        gameStatus = !gameStatus;
+                    }
+                }
+            }
+
+
+
+            // 己方飞机移动的方法
+            function myPlaneMove(e){
+                var e = e || window.event;
+                // 获取鼠标移动时的位置
+                var mouse_x = e.x || e.pageX;
+                var mouse_y = e.y || e.pageY;
+
+                // 计算得到鼠标移动时己方飞机的左上边距
+                var last_myPlane_left = mouse_x - gameML - myPlaneW/2;
+                var last_myPlane_top = mouse_y - gameMT - myPlaneH/2;
+
+                // 控制飞机不能脱离游戏界面
+                if(last_myPlane_left<=0){
+                    last_myPlane_left = 0;
+                }else if(last_myPlane_left >= gameW - myPlaneW){
+                    last_myPlane_left = gameW - myPlaneW;
+                }
+
+                if(last_myPlane_top<=0){
+                    last_myPlane_top = 0;
+                }else if(last_myPlane_top >= gameH - myPlaneH){
+                    last_myPlane_top = gameH - myPlaneH;
+                }
+
+                myPlane.style.left = last_myPlane_left + "px";
+                myPlane.style.top = last_myPlane_top + "px";
+            }
+
+
+            // 单位时间内创建子弹
+            function shot(){
+                // 判断定时器是否存在,不存在才能创建
+                if( bulletTimer == null){
+                    bulletTimer = setInterval(function(){
+                        // 创建子弹
+                        createBullet();
+                    },100);
+                }
+            }
+
+
+            // 制造子弹的方法
+            function createBullet(){
+                var bullet = document.createElement("img");
+                bullet.src = "images/bullet1.png";
+                bullet.className = "bullet";
+                // 1. 确定创建子弹的位置
+                // 创建每一颗子弹都需要确定己方飞机的位置
+                var myPlaneL = getStyle(myPlane,"left");
+                var myPlaneT = getStyle(myPlane,"top");
+
+                // 确定创建子弹的位置
+                var bulletL = myPlaneL + myPlaneW/2 - bulletW/2;
+                var bulletT = myPlaneT - bulletH;
+                bullet.style.left = bulletL + "px";
+                bullet.style.top  = bulletT + "px";
+
+                // 2. 把子弹追加到子弹层中
+                bullets.appendChild( bullet );
+
+                // 子弹走起来
+                move(bullet,"top");
+            }
+
+            // 子弹的运动:运动函数(匀速运动)
+            function move(ele,attr){
+                var speed = -8;
+                ele.timer = setInterval(function(){
+                    var moveVal = getStyle(ele,attr);
+                    // 如果子弹运动出游戏界面,我们就清除子弹的定时器,删除子弹元素
+                    if( moveVal <= -bulletH){
+                        clearInterval(ele.timer);
+                        ele.parentNode.removeChild(ele);
+                    }else{
+                        ele.style[attr] = moveVal + speed + "px";
+                    }
+                },10)
+            }
+
+            // 得到指定范围的随机整数,包括min跟max
+            function getRandom(min,max){
+                return Math.floor( Math.random()*(max-min+1)+min );
+            }
+            // 创建敌机数据对象
+            var enemysObj = {
+                // 小敌机
+                enemy1:{
+                    width:34,
+                    height:24,
+                    score:100,
+                    hp:100
+                },
+                // 中敌机
+                enemy2:{
+                    width:46,
+                    height:60,
+                    score:500,
+                    hp:500
+                },
+                // 大敌机
+                enemy3:{
+                    width:110,
+                    height:164,
+                    score:1000,
+                    hp:1000
+                },
+            }
+
+            // 创建敌机的定时器
+            function appearEnemy(){
+                if( EnemyTimer == null ){
+                    EnemyTimer = setInterval(function(){
+                        // 制造敌机
+                        createEnemy();
+                        // 删除死亡敌机
+                        delEnemy();
+                    },1000)
+                }
+            }
+
+            // 制造敌机的函数
+            function createEnemy(){
+                // 敌机出现的概率的数据
+                var percentData = [1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,2,2,2,2,3];
+                // 敌机的类型
+                var enemyType = percentData[Math.floor(Math.random()*percentData.length)]
+                // 得到当前随机敌机的数据
+                var enemyData = enemysObj["enemy"+enemyType];
+                // 创建敌机图片元素
+                var enemy    = document.createElement("img");
+                enemy.width  = enemyData.width;// 敌机图片的宽度
+                enemy.height = enemyData.height;// 敌机图片的高度
+                enemy.src    = "images/enemy"+enemyType+"_fly_1.png";// 敌机图片的路径
+                enemy.score  = enemyData.score;// 得分
+                enemy.hp     = enemyData.hp;// 血量
+                enemy.type   = enemyType;// 敌机类型
+                enemy.dead   = false;// 敌机是否死亡,false代表未死亡,true代表已死亡
+
+
+                // 确定当前敌机出现时的位置
+                var enemyL = getRandom(0 , gameW-enemyData.width);
+                var enemyT = -enemyData.height ;
+
+                enemy.className = "enemy";
+                enemy.style.left = enemyL + "px";
+                enemy.style.top  = enemyT + "px";
+                // 把敌机添加到敌机层
+                enemys.appendChild( enemy );
+                // 敌机开始运动
+                enemyMove(enemy,"top");
+            }
+
+            // 敌机的运动
+            function enemyMove(ele,attr){
+                var speed = null;
+                if(ele.type == 1){ // 小敌机
+                    speed = 1.5;
+                }else if(ele.type == 2){// 中敌机
+                    speed = 1;
+                }else if(ele.type == 3){// 大敌机
+                    speed = 0.5;
+                }
+                ele.timer = setInterval(function(){
+                    var moveVal = getStyle(ele,attr);
+                    // 如果敌机的top值大于等于游戏界面的高度,就代表敌机已经飞出去了
+                    if( moveVal >= gameH ){
+                        clearInterval(ele.timer);
+                        ele.parentNode.removeChild(ele);
+                    }else{
+                        ele.style[attr] = moveVal + speed + "px";
+                        // 每一架敌机运动时,检测和每一颗子弹的碰撞
+                        danger(ele);
+                        // 碰撞己方飞机是否撞到某个存活的运动敌机,游戏结束
+                        gameOver();
+                    }
+                },10)
+            }
+
+            // 清除所有敌机和所有子弹上的运动定时器
+            function clearObjsTimer(childs){
+                for(var i=0;i<childs.length;i++){
+                    clearInterval( childs[i].timer );
+                }
+            }
+
+
+            // 暂停游戏之后的重新开始游戏
+            function reStart(childs,type){
+                for(var i = 0;i<childs.length;i++){
+                    if(type == 1){// 如果type为1,代表是子弹的运动
+                        move(childs[i],"top");
+                    }else if(type == 2){// 如果type为2,代表是敌机的运动
+                        enemyMove(childs[i],"top");
+                    }
+                }
+            }
+
+            // 开始游戏之后,背景图的运动
+            function bgMove(){
+                if(bgTimer == null){
+                    bgTimer = setInterval(function(){
+                        backgroundPY += 0.5;
+                        if(backgroundPY >= gameH){
+                            backgroundPY = 0;
+                        }
+                        gameEnter.style.backgroundPositionY = backgroundPY + "px";
+                    },10)
+                }
+            }
+
+            // 检测敌机跟每一颗子弹的碰撞函数
+            function danger(enemy){
+                var allBullets = document.querySelectorAll(".bullet");
+                for(var i=0;i<allBullets.length;i++){
+                    // 得到子弹的左边距
+                    var bulletL = getStyle(allBullets[i],"left");
+                    // 得到子弹的上边距
+                    var bulletT = getStyle(allBullets[i],"top");
+
+                    // 得到敌机的左边距
+                    var enemyL = getStyle(enemy,"left");
+                    // 得到敌机的上边距
+                    var enemyT = getStyle(enemy,"top");
+
+                    // 得到敌机的宽度
+                    var enemyW = getStyle(enemy,"width");
+                    // 得到敌机的高度
+                    var enemyH = getStyle(enemy,"height");
+
+                    // ①当子弹的左边距 + 子弹的宽度 >= 敌机的左边距
+                    var condition1 = bulletL+bulletW >= enemyL;
+
+                    // ②当子弹的左边距 <= 敌机的左边距+敌机的宽度
+                    var condition2 = bulletL <= enemyL+enemyW;
+
+                    // ③当子弹的上边距 <= 敌机的上边距+敌机的高度
+                    var condition3 = bulletT <= enemyT+enemyH;
+
+                    // ④当子弹的上边距 + 子弹的高度 >= 敌机的上边距
+                    var condition4 = bulletT+bulletH >= enemyT;
+
+                    // 以上4个条件都满足的时候,才表示碰撞
+                    if(condition1 && condition2 && condition3 && condition4){
+                        // 子弹和敌机的碰撞:删除子弹(删除子弹上运动的定时器,还要删除子弹元素)
+                        clearInterval( allBullets[i].timer );
+                        allBullets[i].parentNode.removeChild( allBullets[i] );
+
+                        // 子弹和敌机发生碰撞后,敌机血量减少,每一颗子弹消耗的血量100;当敌机血量为0时,删除敌机
+                        // 特别注意:我们是使用对象的属性保存血量的,所以操作的时候,需要直接操作对象的属性
+                        enemy.hp -= 100;
+                        if( enemy.hp == 0){
+                            // 删除敌机上运动的定时器
+                            clearInterval(enemy.timer);
+
+                            // 替换爆炸图片
+                            enemy.src = "images/bz"+enemy.type+".gif";
+
+                            // 标记死亡敌机
+                            enemy.dead = true;
+
+                            // 计算得分
+                            scores += enemy.score;
+                            // 把分数写到得分层span上面
+                            scoreSpan.innerHTML = scores;
+                        }
+                    }
+                }
+            }
+
+
+            // 在创建敌机时,延时删除掉已死亡的敌机
+            function delEnemy(){
+                var allEnemys = document.querySelectorAll(".enemy");
+                for(var i=0;i<allEnemys.length;i++){
+                    if( allEnemys[i].dead ){ // 根据标记判断敌机是否死亡
+
+
+                        // 删除死亡敌机元素
+                        allEnemys[i].parentNode.removeChild( allEnemys[i] );
+
+                    }
+                }
+            }
+
+
+            // 己方飞机碰撞到某个存活的运动敌机,游戏结束
+            function gameOver(){
+                // 获取所有的敌方飞机
+                var allEnemys = document.querySelectorAll(".enemy");
+                for(var i=0;i<allEnemys.length;i++){
+                    if(!allEnemys[i].deal){// 游戏界面内存活的敌机
+                        // 检测碰撞
+                        // 获取敌机的左边距
+                        var enemyL = getStyle(allEnemys[i],"left");
+                        // 获取敌机的上边距
+                        var enemyT = getStyle(allEnemys[i],"top");
+
+                        // 获取敌机的宽度高度
+                        var enemyW = allEnemys[i].width;
+                        var enemyH = allEnemys[i].height;
+
+                        // 获取己方飞机的左边距
+                        var myPlaneL = getStyle(myPlane,"left");
+
+                        // 获取己方飞机的上边距
+                        var myPlaneT = getStyle(myPlane,"top");
+
+                        // ①己方飞机碰撞敌机左边:己方飞机左边距+己方飞机宽度>=敌方飞机的左边距
+                        var condition1 = myPlaneL + myPlaneW >= enemyL;
+                        
+                        // ②己方飞机碰撞敌机右边:己方飞机左边距<=敌方飞机的左边距+敌方飞机的宽度
+                        var condition2 = myPlaneL <= enemyL + enemyW;
+
+                        // ③己方飞机碰撞敌机上边:己方飞机上边距+己方飞机高度>=敌方飞机的上边距
+                        var condition3 = myPlaneT + myPlaneH >= enemyT;
+
+                        // ④己方飞机碰撞敌机下边:己方飞机上边距<=敌方飞机的上边距+敌方飞机的高度
+                        var condition4 = myPlaneT <= enemyT + enemyH;
+                        
+                        if(condition1 && condition2 && condition3 && condition4){// 己方飞机和敌机发生了碰撞
+                            // 清除掉当前页面上的所有的定时器(创建子弹的定时器,创建敌机的定时器,游戏背景图的定时器,注意还需要赋值定时器的值为null)
+                            clearInterval(bulletTimer);
+                            clearInterval(EnemyTimer);
+                            clearInterval(bgTimer);
+                            bulletTimer  = null;
+                            EnemyTimer   = null;
+                            bgTimer      = null;
+
+                            // 清除掉所有子弹上运动的定时器以及删除所有的子弹元素
+                            var allBullets = document.querySelectorAll(".bullet");
+                            removeElements( allBullets );
+                            // 清除掉所有敌机上运动的定时器以及删除所有的敌机元素
+                            removeElements( allEnemys );
+
+                            // 删除己方飞机上的移动事件
+                            gameEnter.onmousemove = null;
+
+                            // 提示得分
+                            alert("Game over: " + scores + "分");
+
+                            // 回到游戏开始界面,需要注意把飞机挪回原来底部的位置
+                            gameStart.style.display = "block";
+                            gameEnter.style.display = "none";
+
+                            myPlane.style.left = "127px";
+                            myPlane.style.top = "488px";
+                        }
+
+                    }
+                }
+            }
+
+            // 删除所有的子弹元素或者所有的敌机元素
+            function removeElements(children){
+                for(var i = 0;i<children.length;i++){
+                    clearInterval( children[i].timer );
+                    children[i].parentNode.removeChild(children[i]);
+                }
+            }
+
+
+        }
+    </script>
+</head>
+<body>
+    <!-- 游戏主页面 -->
+    <div id="game">
+        <!-- 开始游戏界面层开始 -->
+        <div id="gameStart">
+            <!-- 开始游戏按钮 -->
+            <span>开始游戏</span>
+        </div>
+        <!-- 开始游戏界面层结束 -->
+
+        <!-- 进入游戏界面开始 -->
+        <div id="gameEnter">
+            <!-- 我的飞机所在层 -->
+            <img src="images/我的飞机.gif" id="myPlane">
+
+            <!-- 子弹所在层 -->
+            <div id="bullets">
+                <!-- 子弹 -->
+                <!-- <img src="images/bullet1.png" class="bullet"/> -->
+            </div>
+
+            <!-- 敌方飞机所在层 -->
+            <div id="enemys"></div>
+            
+            <style>
+                #scores{
+                    width: 100%;
+                    height: 40px;
+                    line-height: 40px;
+                    font-size:24px;
+                    position: absolute;
+                    z-index:10;
+                }
+                #scores p{
+                    padding:0 20px;
+                }
+            </style>
+            <!-- 分数层 -->
+            <div id="scores">
+                <p>得分:<span>0</span>分</p>
+            </div>
+        </div>
+        <!-- 进入游戏界面结束 -->
+    </div>
+</body>
+</html>
