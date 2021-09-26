@@ -1,0 +1,139 @@
+<!DOCTYPE html>
+<html lang="zh">
+  <head>
+    <meta charset="UTF-8" />
+    <meta http-equiv="X-UA-Compatible" content="IE=edge" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Document</title>
+    <script src="https://cdn.jsdelivr.net/npm/vue@2.6.14/dist/vue.js"></script>
+    <script src="./brands.js"></script>
+    <link
+      rel="stylesheet"
+      href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.9.0/css/all.min.css"
+    />
+    <style>
+      .draggable-items {
+        /* display: flex; */
+        /* text-align: center; */
+      }
+      .draggable-items i {
+        font-size: 3em;
+        margin: 5px;
+      }
+      .draggable-items i.active {
+        opacity: 0.2;
+      }
+      ul li {
+        display: flex;
+        align-items: center;
+        margin: 5px;
+      }
+      ul li h3 {
+        width: 20%;
+        text-align: center;
+      }
+      .box {
+        width: 60px;
+        height: 60px;
+        background-color: lightblue;
+        border: 2px dashed black;
+        font-size: 3em;
+      }
+    </style>
+  </head>
+  <body>
+    <div id="app">
+      <!-- <i class="fab fa-airbnb" style="color: #fd5c63;"></i> -->
+      <section>
+        {{correct.length}} / {{steps}}
+        <button v-if="correct.length ===5" @click="restart">重开</button>
+      </section>
+      <section class="draggable-items">
+        <i
+          v-for="b in currentBrands"
+          :class="`fab fa-${b.iconName} ${correct.includes(b.brandName) ?'active' :'' }`"
+          :style="{color: b.color}"
+          draggable="true"
+          @dragstart="dragstart(b.brandName, $event)"
+        ></i>
+      </section>
+      <ul style="margin: 0; padding: 0; list-style: none">
+        <li v-for="b in guessBrands">
+          <h3>{{b.brandName}}</h3>
+          <div
+            class="box"
+            @dragover.prevent="dragover"
+            @drop="drop(b.brandName, $event)"
+          >
+            <i
+              :class="`fab fa-${b.iconName}`"
+              :style="{color: b.color}"
+              v-if="correct.includes(b.brandName)"
+            ></i>
+          </div>
+        </li>
+      </ul>
+    </div>
+    <script>
+      var app = new Vue({
+        el: "#app",
+        data: {
+          brands: brands,
+          currentBrands: [],
+          guessBrands: [],
+          correct: [],
+          steps: 0,
+        },
+
+        created: function () {
+          this.currentBrands = this.getRandomBrands();
+          this.guessBrands = this.shuffler(this.currentBrands);
+        },
+        methods: {
+          shuffler: function (arr) {
+            return [...arr].sort((a, b) => Math.random() - 0.5);
+          },
+
+          getRandomBrands: function () {
+            return this.shuffler(this.brands).slice(0, 5);
+          },
+          dragstart: function (brandName, event) {
+            event.dataTransfer.setData("text", brandName);
+          },
+          dragover: function () {
+            // console.log("over");
+          },
+          drop: function (brandName, event) {
+            this.steps += 1;
+            // console.log(event);
+            var dbn = event.dataTransfer.getData("text");
+            // console.log(dbn, brandName);
+            if (dbn === brandName) {
+              //   var x = this.guessBrands.find(
+              //     (item) => item.brandName === brandName
+              //   );
+              //   x.xxx = true;
+              //   console.log(x);
+
+              //   this.guessBrands = this.guessBrands.map((item) => {
+              //     if (item.brandName === brandName) {
+              //       return { ...item, xxx: true };
+              //     } else {
+              //       return item;
+              //     }
+              //   });
+              console.log(123);
+              this.correct.push(brandName);
+            }
+          },
+          restart: function () {
+            this.currentBrands = this.getRandomBrands();
+            this.guessBrands = this.shuffler(this.currentBrands);
+            this.steps = 0;
+            this.correct = [];
+          },
+        },
+      });
+    </script>
+  </body>
+</html>
