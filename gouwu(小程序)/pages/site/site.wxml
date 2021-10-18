@@ -1,0 +1,26 @@
+<!--pages/site/site.wxml-->
+<view class="address">
+    <view class="item" wx:for="{{addressLists}}" wx:key="*this" wx:if="{{addressLists}}">
+        <view class="left" bindtap="changeAddress" data-id="{{item.id}}">
+            <view class="name">{{item.name}} {{item.phone}}</view>
+            <view class="addressbottom">
+                <view wx:if="{{item.type}}" class="{{item.type=='默认'?'type':item.type=='家'?'type2':item.type=='公司'?'type3':'type4'}}">{{item.type}}</view>
+                <text>{{item.address}}{{item.detailAddress}}</text>
+            </view>
+        </view>
+        <view class="right">
+           <navigator url="/pages/addsite/addsite?id={{item.id}}">编辑</navigator> 
+        </view>
+    </view>
+    <view wx:if="{{!addressLists}}" class="noAddress">
+        暂时还没有收货地址，点击下面添加收货地址吧~
+    </view>
+    <!-- 添加地址 -->
+    <view class="addAddress">
+        <view>
+           <navigator url="/pages/addsite/addsite">
+                添加收货地址
+           </navigator> 
+        </view>
+    </view>
+</view>

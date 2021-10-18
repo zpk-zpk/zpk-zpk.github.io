@@ -1,0 +1,97 @@
+.address{
+  width: 100%;
+}
+.address .item{
+  width: 95%;
+  margin: 0 auto;
+  padding: 28rpx 0;
+  border-bottom: 1px solid #f3f3f3;
+  display: flex;
+  align-items: center;
+  justify-content: space-evenly;
+}
+.address .item .left{
+  width:600rpx;
+}
+.address .item .left .name{
+  font-size: 32rpx;
+  font-weight: 600;
+  color: #111;
+  margin-bottom: 10rpx;
+}
+.address .item .left .addressbottom{
+  font-size: 28rpx;
+  color: #515151;
+}
+.address .item .left .addressbottom .type{
+  font-size: 24rpx;
+  color: #d84c4e;
+  float: left;
+  padding:0 4rpx;
+  box-sizing: border-box;
+  border: 1px solid #d84c4e;
+  border-radius: 4rpx;
+}
+.address .item .left .addressbottom .type2{
+  font-size: 24rpx;
+  color: #6bacf1;
+  float: left;
+  padding:0 4rpx;
+  box-sizing: border-box;
+  border: 1px solid #6bacf1;
+  border-radius: 4rpx;
+}
+.address .item .left .addressbottom .type3{
+  font-size: 24rpx;
+  color: #12c91b;
+  float: left;
+  padding:0 4rpx;
+  box-sizing: border-box;
+  border: 1px solid #12c91b;
+  border-radius: 4rpx;
+}
+.address .item .left .addressbottom .type4{
+  font-size: 24rpx;
+  color: #c9a712;
+  float: left;
+  padding:0 4rpx;
+  box-sizing: border-box;
+  border: 1px solid #c9a712;
+  border-radius: 4rpx;
+}
+.address .item .left .addressbottom text{
+  padding-left:16rpx;
+  box-sizing: border-box;
+  line-height: 32rpx;
+}
+.address .item .right{
+  color: #df3034;
+  font-size: 28rpx;
+}
+.noAddress{
+  font-size: 28rpx;
+  color: #aaa;
+  margin-top: 100rpx;
+  text-align: center;
+}
+/* 添加地址 */
+.addAddress{
+  width: 100%;
+  display: flex;
+  height: 100rpx;
+  align-items: center;justify-content: center;
+  position: fixed;
+  bottom: 0;
+}
+.addAddress view{
+  color: white;
+  font-size: 32rpx;
+  width: 80%;
+  text-align: center;
+  height: 70rpx;
+  line-height: 32rpx;
+  padding: 20rpx 40rpx;
+  border-radius: 36rpx;
+  background: linear-gradient(to top left,#97d2f1,#1296db);
+  letter-spacing: 1px;
+}

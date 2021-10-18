@@ -1,0 +1,68 @@
+<!--pages/addsite/addsite.wxml-->
+<!--pages/addAddress/addAddress.wxml-->
+<view class="addAddress">
+    <view>
+        <text>收货人</text>
+        <input 
+        class="ipt" 
+        type="text" 
+        placeholder="姓名"
+        value="{{name}}"
+        placeholder-style="color:#e4e3e3;font-size:28rpx"
+        bindinput="getName"
+        />
+    </view>
+    <view>
+        <text>联系方式</text>
+        <input 
+        class="ipt" 
+        type="text" 
+        value="{{phone}}"
+        placeholder="电话号码"
+        placeholder-style="color:#e4e3e3;font-size:28rpx"
+        bindinput="getPhone"/>
+    </view>
+    <view>
+        <text>所在地区</text>
+        <input 
+        class="ipt" 
+        type="text" 
+        value="{{address}}"
+        placeholder="省市区县、乡镇等"
+        placeholder-style="color:#e4e3e3;font-size:28rpx"
+        bindinput="getAddress"/>
+    </view>
+    <view>
+        <text>详细地址</text>
+        <textarea 
+        class="ipt" 
+        placeholder="街道、楼牌号等"
+        value="{{detailAddress}}"
+        placeholder-style="color:#e4e3e3;font-size:28rpx"
+        bindinput="getDetailAddress"></textarea>
+    </view>
+    <view>
+        <text>地址标签</text>
+        <text 
+        class="type {{typeNum == index?'active':''}}" 
+        wx:for="{{type}}"
+        wx:key="*this"
+        bindtap="getType"
+        data-index="{{index}}">{{item}}</text>
+    </view>
+    <view wx:if="{{id}}" bindtap="del">删除</view>
+    <view wx:if="{{id}}" bindtap="xiugai">保存修改</view>
+    <view wx:else bindtap="addAddress">保存改地址</view>
+</view>
+
+  <!-- 提示tips -->
+  <view class="bottom-tips" wx:if="{{warnFlag}}">
+    <image src=""></image>
+  <text>{{tipscontent}}</text>
+</view>
+ <!-- 提示tips -->
+ <view class="bottom-tips" wx:if="{{tipsFlag}}">
+    <image src=""></image>
+  <text>{{tipscontent}}</text>
+</view>
+

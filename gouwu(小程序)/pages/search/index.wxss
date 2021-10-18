@@ -1,0 +1,13 @@
+/* pages/search/index.wxss */
+page {
+  background-color: #dedede;
+}
+van-search {
+  height: 60rpx;
+  width: 100%;
+}
+.box .lists {
+  overflow: hidden;
+  white-space: nowrap;
+  text-overflow: ellipsis;
+}
